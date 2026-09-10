@@ -1,0 +1,595 @@
+<title>Issuing Block Velocity</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --text: #1a1d21;
+    --text-sec: #4b5563;
+    --text-muted: #9ca3af;
+    --border: #e5e7eb;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --red-light: #fecaca;
+    --burst-track: #e5e7eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111214;
+      --surface: #1a1c20;
+      --text: #f3f4f6;
+      --text-sec: #9ca3af;
+      --text-muted: #6b7280;
+      --border: #2a2d33;
+      --green: #34d399;
+      --green-bg: #052e16;
+      --amber: #fbbf24;
+      --amber-bg: #451a03;
+      --blue: #60a5fa;
+      --blue-bg: #172554;
+      --red: #f87171;
+      --red-bg: #450a0a;
+      --red-light: #7f1d1d;
+      --burst-track: #2a2d33;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111214;
+    --surface: #1a1c20;
+    --text: #f3f4f6;
+    --text-sec: #9ca3af;
+    --text-muted: #6b7280;
+    --border: #2a2d33;
+    --green: #34d399;
+    --green-bg: #052e16;
+    --amber: #fbbf24;
+    --amber-bg: #451a03;
+    --blue: #60a5fa;
+    --blue-bg: #172554;
+    --red: #f87171;
+    --red-bg: #450a0a;
+    --red-light: #7f1d1d;
+    --burst-track: #2a2d33;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 48px 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  /* Header */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--red);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-size: 15px;
+    color: var(--text-sec);
+    margin-bottom: 36px;
+    max-width: 560px;
+  }
+
+  /* KPI strip */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 36px;
+  }
+  .kpi {
+    background: var(--bg);
+    padding: 20px;
+    text-align: center;
+  }
+  .kpi-val {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .kpi-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Incident card */
+  .incident {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .inc-top {
+    padding: 20px 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .inc-date {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .inc-desc {
+    font-size: 13px;
+    color: var(--text-sec);
+    margin-top: 2px;
+  }
+  .inc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--red-bg);
+    color: var(--red);
+  }
+  .inc-badge svg { flex-shrink: 0; }
+
+  /* Burst visualization */
+  .burst-section {
+    padding: 0 24px 20px;
+  }
+  .burst-viz {
+    position: relative;
+    height: 48px;
+    background: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .burst-dots {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+  }
+  .bdot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 2px solid var(--bg);
+    z-index: 1;
+  }
+  .bdot-legit { background: var(--green); }
+  .bdot-disc { background: var(--amber); }
+  .bdot-pend { background: var(--blue); }
+
+  .burst-label-left {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    z-index: 2;
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .burst-label-right {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red);
+    z-index: 2;
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* Transaction list */
+  .txn-list {
+    border-top: 1px solid var(--border);
+  }
+  .txn {
+    display: grid;
+    grid-template-columns: 76px 44px 1fr 80px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .txn:last-child { border-bottom: none; }
+
+  .txn-time {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .txn-delta {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red);
+    text-align: center;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: var(--red-bg);
+  }
+  .txn-delta.is-gap {
+    color: var(--text-muted);
+    background: var(--surface);
+  }
+  .txn-delta.is-first {
+    color: var(--text-muted);
+    background: transparent;
+    font-weight: 400;
+  }
+
+  .txn-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .txn-amount {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .txn-rule {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .txn-status {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .st-g { background: var(--green-bg); color: var(--green); }
+  .st-a { background: var(--amber-bg); color: var(--amber); }
+  .st-b { background: var(--blue-bg); color: var(--blue); }
+
+  /* Footer */
+  .inc-foot {
+    padding: 10px 24px;
+    background: var(--surface);
+    font-size: 12px;
+    color: var(--text-sec);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .foot-outcomes span { margin-right: 12px; }
+
+  /* Bottom takeaway */
+  .takeaway {
+    margin-top: 28px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .takeaway-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .takeaway p {
+    font-size: 13px;
+    color: var(--text-sec);
+    line-height: 1.6;
+  }
+  .takeaway p + p { margin-top: 8px; }
+
+  @media (max-width: 560px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .txn { grid-template-columns: 68px 36px 1fr 68px; gap: 6px; padding: 8px 16px; }
+    .inc-top, .inc-foot, .burst-section { padding-left: 16px; padding-right: 16px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Issuing Risk</div>
+  <h1>Corporate Travel Card Blocks</h1>
+  <div class="subtitle">Velocity rules designed for card testing detection blocked legitimate travel bookings made in rapid succession. All 20 transactions are false blocks.</div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-val">20</div>
+      <div class="kpi-label">Blocked</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-val" style="color:var(--green)">11</div>
+      <div class="kpi-label">Confirmed Legit</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-val" style="color:var(--amber)">4</div>
+      <div class="kpi-label">No Response</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-val" style="color:var(--red)">0</div>
+      <div class="kpi-label">Fraud</div>
+    </div>
+  </div>
+
+  <!-- Incident 1: June 3 -->
+  <div class="incident">
+    <div class="inc-top">
+      <div>
+        <div class="inc-date">June 3, 2026</div>
+        <div class="inc-desc">Japan travel bookings &mdash; Card ****8515</div>
+      </div>
+      <div class="inc-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v4l2.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg>
+        7 txns in 27 seconds
+      </div>
+    </div>
+    <div class="txn-list">
+      <div class="txn">
+        <span class="txn-time">08:35:35</span>
+        <span class="txn-delta is-first">&mdash;</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.00</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:35:37</span>
+        <span class="txn-delta">+2s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.69</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:35:40</span>
+        <span class="txn-delta">+3s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.00</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:35:42</span>
+        <span class="txn-delta">+2s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.69</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:35:44</span>
+        <span class="txn-delta">+2s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.69</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:36:01</span>
+        <span class="txn-delta">+17s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.00</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-a">No Response</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:36:02</span>
+        <span class="txn-delta">+1s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.69</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-a">No Response</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incident 2: August 10 -->
+  <div class="incident">
+    <div class="inc-top">
+      <div>
+        <div class="inc-date">August 10, 2026</div>
+        <div class="inc-desc">NZ flight + hotel bookings &mdash; Card ****8515</div>
+      </div>
+      <div class="inc-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v4l2.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg>
+        9 txns in 1h 46m
+      </div>
+    </div>
+    <div class="txn-list">
+      <div class="txn">
+        <span class="txn-time">07:51:15</span>
+        <span class="txn-delta is-first">&mdash;</span>
+        <div class="txn-info">
+          <span class="txn-amount">$512.09</span>
+          <span class="txn-rule">10Min Velocity rule</span>
+        </div>
+        <span class="txn-status st-b">Pending</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">07:55:32</span>
+        <span class="txn-delta is-gap">+4m</span>
+        <div class="txn-info">
+          <span class="txn-amount">$159.97</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">07:55:33</span>
+        <span class="txn-delta">+1s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$159.97</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">07:55:34</span>
+        <span class="txn-delta">+1s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$159.97</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-b">Pending</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:55:24</span>
+        <span class="txn-delta is-gap">+1h</span>
+        <div class="txn-info">
+          <span class="txn-amount">$159.97</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:55:26</span>
+        <span class="txn-delta">+2s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$159.97</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-b">Pending</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">08:55:27</span>
+        <span class="txn-delta">+1s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$159.97</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">09:36:56</span>
+        <span class="txn-delta is-gap">+42m</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.00</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-b">Pending</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">09:36:57</span>
+        <span class="txn-delta">+1s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$0.00</span>
+          <span class="txn-rule">1Hr Velocity rule</span>
+        </div>
+        <span class="txn-status st-b">Pending</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incident 3: September 3 -->
+  <div class="incident">
+    <div class="inc-top">
+      <div>
+        <div class="inc-date">September 3, 2026</div>
+        <div class="inc-desc">Miami hotel booking &mdash; Card ****1952</div>
+      </div>
+      <div class="inc-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v4l2.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg>
+        4 txns in 1h 26m
+      </div>
+    </div>
+    <div class="txn-list">
+      <div class="txn">
+        <span class="txn-time">16:30:29</span>
+        <span class="txn-delta is-first">&mdash;</span>
+        <div class="txn-info">
+          <span class="txn-amount">$353.12</span>
+          <span class="txn-rule">CVV2/Expiry Velocity rule</span>
+        </div>
+        <span class="txn-status st-a">No Response</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">17:55:42</span>
+        <span class="txn-delta is-gap">+1h25m</span>
+        <div class="txn-info">
+          <span class="txn-amount">$353.12</span>
+          <span class="txn-rule">CVV2/Expiry Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">17:56:04</span>
+        <span class="txn-delta">+22s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$353.12</span>
+          <span class="txn-rule">CVV2/Expiry Velocity rule</span>
+        </div>
+        <span class="txn-status st-g">Legitimate</span>
+      </div>
+      <div class="txn">
+        <span class="txn-time">17:56:18</span>
+        <span class="txn-delta">+14s</span>
+        <div class="txn-info">
+          <span class="txn-amount">$1.00</span>
+          <span class="txn-rule">CVV2/Expiry Velocity rule</span>
+        </div>
+        <span class="txn-status st-a">No Response</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Takeaway -->
+  <div class="takeaway">
+    <div class="takeaway-title">What happened and what we are doing</div>
+    <p>Three velocity rules designed to detect card testing blocked legitimate corporate travel bookings. The rapid-fire pattern (transactions 1-2 seconds apart) mimics card testing but is normal for travel platforms processing flight + hotel pairs.</p>
+    <p>A dedicated issuing DA joined last month and has already revamped several rules, lifting precision 2x (8.4% to 17.8%, August backtest at 24%). Shadow rule launched last week to validate on live data. Overall issuing fraud rate is 0.03% against a 0.2% target, giving us room to relax thresholds and reduce friction.</p>
+  </div>
+</div>
